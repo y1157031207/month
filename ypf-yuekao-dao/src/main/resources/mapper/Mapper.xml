@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ypf.mapper.ActMapper">
+	<select id="queryAct" resultType="com.ypf.beans.Activity" parameterType="map">
+		SELECT a.*,t.tname,GROUP_CONCAT(s.sname) AS sname FROM activity a
+		LEFT JOIN type t ON a.tid = t.tid
+		LEFT JOIN activity_server ae ON ae.aid = a.aid
+		LEFT JOIN server s ON s.sid = ae.sid
+		<where>
+			<if test="tid!=null and tid!=''">
+				and a.tid = #{tid}
+			</if>
+			<if test="createtime!=null">
+				and a.createtime >= #{createstart}
+			</if>
+			<if test="createtime!=null">
+				and a.createtime &lt;= #{createend}
+			</if>
+			<if test="aname!=null">
+				and a.aname like concat('%',#{aname},'%')
+			</if>
+		</where>
+		GROUP BY a.code
+	</select>
+	
+	<select id="queryType" resultType="com.ypf.beans.Type">
+		select * from type
+	</select>
+	
+	<select id="queryServer" resultType="com.ypf.beans.Server">
+		select * from server
+	</select>
+	
+	<insert id="addAct" parameterType="com.ypf.beans.Activity" useGeneratedKeys="true" keyProperty="aid">
+		insert into activity 
+		(code,tid,aname,starttime,endtime,createtime)
+		values
+		(#{code},#{tid},#{aname},#{starttime},#{endtime},now())
+	</insert>
+	
+	<insert id="addActSer" parameterType="map" useGeneratedKeys="true" keyProperty="aid">
+		insert into activity_server
+		(aid,sid)
+		values
+		(#{aid},#{sid})
+	</insert>
+	
+	<delete id="delAct" parameterType="int">
+		delete from activity where aid=#{aid}
+	</delete>
+	
+	<delete id="delActSer" parameterType="int">
+		delete from activity_server where aid=#{aid}
+	</delete>
+	
+	<select id="queryActivityByAid" resultType="com.ypf.beans.Activity" parameterType="int">
+		select * from activity where aid=#{aid}
+	</select>
+	
+	<update id="updateAct" parameterType="com.ypf.beans.Activity">
+		update activity set
+		code=#{code},tid=#{tid},aname=#{aname},starttime=#{starttime},endtime=#{endtime}
+		where aid=#{aid}
+	</update>
+</mapper>
